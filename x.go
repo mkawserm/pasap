@@ -3,15 +3,15 @@ package pasap
 import "errors"
 
 var (
-	// ErrHashComponentUnreadable
+	// ErrHashComponentUnreadable occurs when unreadable component in hashed password
 	ErrHashComponentUnreadable = errors.New("pasap: unreadable component in hashed password")
 
-	// ErrHashComponentMismatch
+	// ErrHashComponentMismatch occurs when hashed password components does not match
 	ErrHashComponentMismatch = errors.New("pasap: hashed password components mismatch")
 
-	// ErrAlgorithmMismatch
+	// ErrAlgorithmMismatch occurs when algorithm does not match
 	ErrAlgorithmMismatch = errors.New("pasap: algorithm mismatch")
 
-	// ErrIncompatibleVersion
+	// ErrIncompatibleVersion occurs when version in to compatible
 	ErrIncompatibleVersion = errors.New("pasap: incompatible version")
 )
