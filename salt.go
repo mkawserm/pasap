@@ -1,10 +1,20 @@
 package pasap
 
-import "crypto/rand"
+import (
+	"crypto/rand"
+	"io"
+)
 
-// GenerateRandomSalt generates random salt
-func GenerateRandomSalt(length int) []byte {
+// GetSalt receives salt from the reader
+func GetSalt(length int, reader io.Reader) []byte {
+	if reader == nil {
+		reader = rand.Reader
+	}
 	s := make([]byte, length, length)
-	_, _ = rand.Read(s)
+	_, err := io.ReadFull(reader, s)
+
+	if err != nil {
+		return nil
+	}
 	return s
 }
