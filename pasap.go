@@ -7,7 +7,7 @@ type AlgorithmName interface {
 
 // PasswordEncoder basic interface
 type PasswordEncoder interface {
-	Encode(password, salt []byte) (fixedLengthKey, encodedKey []byte)
+	Encode(password, salt []byte) (secretKey, encodedKey []byte)
 }
 
 // PasswordVerifier basic interface

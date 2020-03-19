@@ -1,7 +1,6 @@
 package pasap
 
 import (
-	"crypto/rand"
 	"crypto/subtle"
 	"encoding/base64"
 	"fmt"
@@ -29,9 +28,8 @@ func (a *Argon2idHasher) Name() string {
 
 // Encode the password using argon2.IDKey algorithm
 func (a *Argon2idHasher) Encode(password, salt []byte) (secretKey, encodedKey []byte) {
-	if len(salt) == 0 {
-		salt = make([]byte, 16)
-		_, _ = rand.Read(salt)
+	if len(password) == 0 || len(salt) == 0 {
+		return nil, nil
 	}
 
 	secretKey = argon2.IDKey(password, salt, a.Time, a.Memory, a.Threads, a.Length)
