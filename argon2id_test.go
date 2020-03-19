@@ -36,3 +36,61 @@ func TestNewArgon2idHasher(t *testing.T) {
 		return
 	}
 }
+
+func TestArgon2idHasher_Verify(t *testing.T) {
+	{
+		data := "argon2id$v=19$m=65536,t=2,p=4$MTIzNDU2Nzg5$XSL8cCbrmp0URjVS79dzQodzLMkyGza22ob2G9ZMGXo"
+		a := NewArgon2idHasher()
+		ok, _ := a.Verify([]byte("pass2"), []byte(data))
+
+		if ok {
+			t.Errorf("Verify should not be ok")
+		}
+	}
+
+	{
+		data := "new$argon2id$v=19$m=65536,t=2,p=4$MTIzNDU2Nzg5$XSL8cCbrmp0URjVS79dzQodzLMkyGza22ob2G9ZMGXo"
+		a := NewArgon2idHasher()
+		_, err := a.Verify([]byte("pass2"), []byte(data))
+		if err != ErrHashComponentMismatch {
+			t.Errorf("Error should be ErrHashComponentMismatch but got %v", err)
+		}
+	}
+
+	{
+		data := "argon3id$v=19$m=65536,t=2,p=4$MTIzNDU2Nzg5$XSL8cCbrmp0URjVS79dzQodzLMkyGza22ob2G9ZMGXo"
+		a := NewArgon2idHasher()
+		_, err := a.Verify([]byte("pass2"), []byte(data))
+		if err != ErrAlgorithmMismatch {
+			t.Errorf("Error should be ErrAlgorithmMismatch but got %v", err)
+		}
+	}
+
+	{
+		data := "argon2id$v=smile$m=65536,t=2,p=4$MTIzNDU2Nzg5$XSL8cCbrmp0URjVS79dzQodzLMkyGza22ob2G9ZMGXo"
+		a := NewArgon2idHasher()
+		_, err := a.Verify([]byte("pass2"), []byte(data))
+		if err != ErrHashComponentUnreadable {
+			t.Errorf("Error should be ErrHashComponentUnreadable but got %v", err)
+		}
+	}
+
+	{
+		data := "argon2id$v=20$m=65536,t=2,p=4$MTIzNDU2Nzg5$XSL8cCbrmp0URjVS79dzQodzLMkyGza22ob2G9ZMGXo"
+		a := NewArgon2idHasher()
+		_, err := a.Verify([]byte("pass2"), []byte(data))
+		if err != ErrIncompatibleVersion {
+			t.Errorf("Error should be ErrIncompatibleVersion but got %v", err)
+		}
+	}
+
+	{
+		data := "argon2id$v=19$m=smile,t=2,p=4$MTIzNDU2Nzg5$XSL8cCbrmp0URjVS79dzQodzLMkyGza22ob2G9ZMGXo"
+		a := NewArgon2idHasher()
+		_, err := a.Verify([]byte("pass2"), []byte(data))
+		if err != ErrHashComponentUnreadable {
+			t.Errorf("Error should be ErrHashComponentUnreadable but got %v", err)
+		}
+	}
+
+}
