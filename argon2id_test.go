@@ -93,4 +93,22 @@ func TestArgon2idHasher_Verify(t *testing.T) {
 		}
 	}
 
+	{
+		data := "argon2id$v=19$m=65536,t=2,p=4$2$XSL8cCbrmp0URjVS79dzQodzLMkyGza22ob2G9ZMGXo"
+		a := NewArgon2idHasher()
+		_, err := a.Verify([]byte("pass2"), []byte(data))
+		if err != ErrHashComponentUnreadable {
+			t.Errorf("Error should be ErrHashComponentUnreadable but got %v", err)
+		}
+	}
+
+	{
+		data := "argon2id$v=19$m=65536,t=2,p=4$MTIzNDU2Nzg5$1"
+		a := NewArgon2idHasher()
+		_, err := a.Verify([]byte("pass2"), []byte(data))
+		if err != ErrHashComponentUnreadable {
+			t.Errorf("Error should be ErrHashComponentUnreadable but got %v", err)
+		}
+	}
+
 }
