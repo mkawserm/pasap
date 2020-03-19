@@ -21,10 +21,12 @@ type Argon2idHasher struct {
 	Length uint32
 }
 
+// Name returns Argon2idHasher name
 func (a *Argon2idHasher) Name() string {
 	return "argon2id"
 }
 
+// Encode the password using argon2.IDKey algorithm
 func (a *Argon2idHasher) Encode(password, salt []byte) (secretKey, encodedKey []byte) {
 	secretKey = argon2.IDKey(password, salt, a.Time, a.Memory, a.Threads, a.Length)
 	hash := argon2.IDKey(secretKey, salt, a.Time, a.Memory, a.Threads, a.Length)
@@ -45,6 +47,7 @@ func (a *Argon2idHasher) Encode(password, salt []byte) (secretKey, encodedKey []
 	return secretKey, encodedKey
 }
 
+// Verify the password against the encoded key
 func (a *Argon2idHasher) Verify(password, encodedKey []byte) (bool, error) {
 	s := strings.Split(string(encodedKey), "$")
 
@@ -98,6 +101,7 @@ func (a *Argon2idHasher) Verify(password, encodedKey []byte) (bool, error) {
 	return subtle.ConstantTimeCompare(bHash, newHash) == 1, nil
 }
 
+// NewArgon2idHasher returns a new Argon2idHasher instance
 func NewArgon2idHasher() *Argon2idHasher {
 	return &Argon2idHasher{
 		Time:    2,
