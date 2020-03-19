@@ -17,24 +17,47 @@ func TestNewArgon2idHasher(t *testing.T) {
 		return
 	}
 
-	secretKey, encodedKey := a.Encode([]byte("pass"), []byte("123456789"))
+	{
+		secretKey, encodedKey := a.Encode([]byte("pass"), []byte("123456789"))
+		if len(secretKey) != 32 {
+			t.Errorf("expected secret key length 32, but got %d", len(secretKey))
+			return
+		}
 
-	if len(secretKey) != 32 {
-		t.Errorf("expected secret key length 32, but got %d", len(secretKey))
-		return
+		ok, err := a.Verify([]byte("pass"), encodedKey)
+
+		if err != nil {
+			t.Errorf("error: %v", err)
+			return
+		}
+
+		if !ok {
+			t.Errorf("verification is not working")
+			return
+		}
 	}
 
-	ok, err := a.Verify([]byte("pass"), encodedKey)
+	{
+		secretKey, encodedKey := a.Encode([]byte("pass"), nil)
+		// fmt.Println(string(encodedKey))
+		if len(secretKey) != 32 {
+			t.Errorf("expected secret key length 32, but got %d", len(secretKey))
+			return
+		}
 
-	if err != nil {
-		t.Errorf("error: %v", err)
-		return
+		ok, err := a.Verify([]byte("pass"), encodedKey)
+
+		if err != nil {
+			t.Errorf("error: %v", err)
+			return
+		}
+
+		if !ok {
+			t.Errorf("verification is not working")
+			return
+		}
 	}
 
-	if !ok {
-		t.Errorf("verification is not working")
-		return
-	}
 }
 
 func TestArgon2idHasher_Verify(t *testing.T) {
