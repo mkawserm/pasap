@@ -4,6 +4,30 @@ import (
 	"testing"
 )
 
+func TestArgon2idHasher_EncodeNilPassword(t *testing.T) {
+	a := NewArgon2idHasher()
+	_, _, err := a.Encode(&ByteBasedEncoderCredentials{
+		Salt:     nil,
+		Password: nil,
+	})
+
+	if err != ErrInvalidData {
+		t.Errorf("unexpected error: %v", err)
+	}
+}
+
+func TestArgon2idHasher_EncodeSalt(t *testing.T) {
+	a := NewArgon2idHasher()
+	_, _, err := a.Encode(&ByteBasedEncoderCredentials{
+		Salt:     nil,
+		Password: []byte("password"),
+	})
+
+	if err != ErrInvalidData {
+		t.Errorf("unexpected error: %v", err)
+	}
+}
+
 func TestNewArgon2idHasher(t *testing.T) {
 	a := NewArgon2idHasher()
 
@@ -63,7 +87,6 @@ func TestNewArgon2idHasher(t *testing.T) {
 			return
 		}
 	}
-
 }
 
 func TestArgon2idHasher_Verify(t *testing.T) {
@@ -173,4 +196,28 @@ func TestArgon2idHasher_Verify(t *testing.T) {
 		}
 	}
 
+}
+
+func TestArgon2idHasher_VerifyNilPassword(t *testing.T) {
+	a := NewArgon2idHasher()
+	_, _, err := a.Verify(&ByteBasedVerifierCredentials{
+		Password:   nil,
+		EncodedKey: nil,
+	})
+
+	if err != ErrInvalidData {
+		t.Errorf("unexpected error: %v", err)
+	}
+}
+
+func TestArgon2idHasher_VerifyNilEncodedKey(t *testing.T) {
+	a := NewArgon2idHasher()
+	_, _, err := a.Verify(&ByteBasedVerifierCredentials{
+		Password:   []byte("password"),
+		EncodedKey: nil,
+	})
+
+	if err != ErrInvalidData {
+		t.Errorf("unexpected error: %v", err)
+	}
 }
