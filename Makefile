@@ -6,6 +6,5 @@ test-race:
 	@go test -race ./...
 .PHONY: test-race
 
-all-v:
-	@go test ./... -v
-	@go test -coverprofile=cover.out
+cover:
+	@go test -coverprofile=cover.out -v

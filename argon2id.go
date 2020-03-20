@@ -26,8 +26,21 @@ func (a *Argon2idHasher) Name() string {
 	return "argon2id"
 }
 
+func (a *Argon2idHasher) Version() int {
+	return argon2.Version
+}
+
+func (a *Argon2idHasher) Parameters() string {
+	s := fmt.Sprintf("m=%d,t=%d,p=%d",
+		a.Memory,
+		a.Time,
+		a.Threads,
+	)
+	return s
+}
+
 // Encode the password using argon2.IDKey algorithm
-func (a *Argon2idHasher) Encode(encoderCredentials EncoderCredentials) (secretKey, encodedKey []byte, err error) {
+func (a *Argon2idHasher) Encode(encoderCredentials EncoderCredentialsReader) (secretKey, encodedKey []byte, err error) {
 	var password []byte
 	var salt []byte
 
@@ -47,12 +60,10 @@ func (a *Argon2idHasher) Encode(encoderCredentials EncoderCredentials) (secretKe
 	b64Salt := base64.RawStdEncoding.EncodeToString(salt)
 	b64Hash := base64.RawStdEncoding.EncodeToString(hash)
 
-	s := fmt.Sprintf("%s$v=%d$m=%d,t=%d,p=%d$%s$%s",
+	s := fmt.Sprintf("%s$v=%d$%s$%s$%s",
 		a.Name(),
-		argon2.Version,
-		a.Memory,
-		a.Time,
-		a.Threads,
+		a.Version(),
+		a.Parameters(),
 		b64Salt,
 		b64Hash,
 	)
@@ -62,7 +73,7 @@ func (a *Argon2idHasher) Encode(encoderCredentials EncoderCredentials) (secretKe
 }
 
 // Verify the password against the encoded key
-func (a *Argon2idHasher) Verify(verifierCredentials VerifierCredentials) (secretKey []byte, ok bool, err error) {
+func (a *Argon2idHasher) Verify(verifierCredentials VerifierCredentialsReader) (secretKey []byte, ok bool, err error) {
 	var password []byte
 	var encodedKey []byte
 
@@ -96,7 +107,7 @@ func (a *Argon2idHasher) Verify(verifierCredentials VerifierCredentials) (secret
 		return nil, false, ErrHashComponentUnreadable
 	}
 
-	if v != argon2.Version {
+	if v != a.Version() {
 		return nil, false, ErrIncompatibleVersion
 	}
 
