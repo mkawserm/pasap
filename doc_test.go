@@ -13,6 +13,10 @@ func ExampleNewArgon2idHasher() {
 	}
 	secretKey, encodedKey, err := a.Encode(ec)
 
+	if err != nil {
+		panic(err)
+	}
+
 	fmt.Printf("Secret key: %v\n", secretKey)
 	fmt.Printf("Encoded key: %v\n", encodedKey)
 
