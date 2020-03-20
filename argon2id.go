@@ -27,9 +27,18 @@ func (a *Argon2idHasher) Name() string {
 }
 
 // Encode the password using argon2.IDKey algorithm
-func (a *Argon2idHasher) Encode(password, salt []byte) (secretKey, encodedKey []byte) {
-	if len(password) == 0 || len(salt) == 0 {
-		return nil, nil
+func (a *Argon2idHasher) Encode(encoderCredentials EncoderCredentials) (secretKey, encodedKey []byte, err error) {
+	var password []byte
+	var salt []byte
+
+	password, err = encoderCredentials.ReadPassword()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	salt, err = encoderCredentials.ReadSalt()
+	if err != nil {
+		return nil, nil, err
 	}
 
 	secretKey = argon2.IDKey(password, salt, a.Time, a.Memory, a.Threads, a.Length)
@@ -48,11 +57,25 @@ func (a *Argon2idHasher) Encode(password, salt []byte) (secretKey, encodedKey []
 		b64Hash,
 	)
 	encodedKey = []byte(s)
-	return secretKey, encodedKey
+
+	return secretKey, encodedKey, err
 }
 
 // Verify the password against the encoded key
-func (a *Argon2idHasher) Verify(password, encodedKey []byte) ([]byte, bool, error) {
+func (a *Argon2idHasher) Verify(verifierCredentials VerifierCredentials) (secretKey []byte, ok bool, err error) {
+	var password []byte
+	var encodedKey []byte
+
+	password, err = verifierCredentials.ReadPassword()
+	if err != nil {
+		return nil, false, err
+	}
+
+	encodedKey, err = verifierCredentials.ReadEncodedKey()
+	if err != nil {
+		return nil, false, err
+	}
+
 	s := strings.Split(string(encodedKey), "$")
 
 	if len(s) != 5 {
@@ -66,7 +89,6 @@ func (a *Argon2idHasher) Verify(password, encodedKey []byte) ([]byte, bool, erro
 	}
 
 	var v int
-	var err error
 
 	_, err = fmt.Sscanf(version, "v=%d", &v)
 
@@ -87,19 +109,21 @@ func (a *Argon2idHasher) Verify(password, encodedKey []byte) ([]byte, bool, erro
 		return nil, false, ErrHashComponentUnreadable
 	}
 
-	bSalt, err := base64.RawStdEncoding.DecodeString(salt)
+	var bSalt []byte
+	bSalt, err = base64.RawStdEncoding.DecodeString(salt)
 
 	if err != nil {
 		return nil, false, ErrHashComponentUnreadable
 	}
 
-	bHash, err := base64.RawStdEncoding.DecodeString(hash)
+	var bHash []byte
+	bHash, err = base64.RawStdEncoding.DecodeString(hash)
 
 	if err != nil {
 		return nil, false, ErrHashComponentUnreadable
 	}
 
-	secretKey := argon2.IDKey(password, bSalt, time, memory, threads, uint32(len(bHash)))
+	secretKey = argon2.IDKey(password, bSalt, time, memory, threads, uint32(len(bHash)))
 	newHash := argon2.IDKey(secretKey, bSalt, time, memory, threads, uint32(len(bHash)))
 
 	return secretKey, subtle.ConstantTimeCompare(bHash, newHash) == 1, nil

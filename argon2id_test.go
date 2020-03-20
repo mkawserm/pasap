@@ -18,13 +18,19 @@ func TestNewArgon2idHasher(t *testing.T) {
 	}
 
 	{
-		secretKey, encodedKey := a.Encode([]byte("pass"), []byte("123456789"))
+		secretKey, encodedKey, err := a.Encode(&ByteBasedEncoderCredentials{
+			Salt:     []byte("123456789"),
+			Password: []byte("pass"),
+		})
 		if len(secretKey) != 32 {
 			t.Errorf("expected secret key length 32, but got %d", len(secretKey))
 			return
 		}
 
-		_, ok, err := a.Verify([]byte("pass"), encodedKey)
+		_, ok, err := a.Verify(&ByteBasedVerifierCredentials{
+			Password:   []byte("pass"),
+			EncodedKey: encodedKey,
+		})
 
 		if err != nil {
 			t.Errorf("error: %v", err)
@@ -38,7 +44,14 @@ func TestNewArgon2idHasher(t *testing.T) {
 	}
 
 	{
-		secretKey, encodedKey := a.Encode([]byte("pass"), nil)
+		secretKey, encodedKey, err := a.Encode(&ByteBasedEncoderCredentials{
+			Salt:     nil,
+			Password: []byte("pass"),
+		})
+		if err != ErrInvalidData {
+			t.Errorf("Unexpected error: %v", err)
+			return
+		}
 		//fmt.Println(string(encodedKey))
 		if len(secretKey) != 0 {
 			t.Errorf("expected secret key length 0, but got %d", len(secretKey))
@@ -56,8 +69,12 @@ func TestNewArgon2idHasher(t *testing.T) {
 func TestArgon2idHasher_Verify(t *testing.T) {
 	{
 		data := "argon2id$v=19$m=65536,t=2,p=4$MTIzNDU2Nzg5$XSL8cCbrmp0URjVS79dzQodzLMkyGza22ob2G9ZMGXo"
+		c := &ByteBasedVerifierCredentials{
+			Password:   []byte("pass2"),
+			EncodedKey: []byte(data),
+		}
 		a := NewArgon2idHasher()
-		_, ok, _ := a.Verify([]byte("pass2"), []byte(data))
+		_, ok, _ := a.Verify(c)
 
 		if ok {
 			t.Errorf("Verify should not be ok")
@@ -66,8 +83,12 @@ func TestArgon2idHasher_Verify(t *testing.T) {
 
 	{
 		data := "new$argon2id$v=19$m=65536,t=2,p=4$MTIzNDU2Nzg5$XSL8cCbrmp0URjVS79dzQodzLMkyGza22ob2G9ZMGXo"
+		c := &ByteBasedVerifierCredentials{
+			Password:   []byte("pass2"),
+			EncodedKey: []byte(data),
+		}
 		a := NewArgon2idHasher()
-		_, _, err := a.Verify([]byte("pass2"), []byte(data))
+		_, _, err := a.Verify(c)
 		if err != ErrHashComponentMismatch {
 			t.Errorf("Error should be ErrHashComponentMismatch but got %v", err)
 		}
@@ -75,8 +96,12 @@ func TestArgon2idHasher_Verify(t *testing.T) {
 
 	{
 		data := "argon3id$v=19$m=65536,t=2,p=4$MTIzNDU2Nzg5$XSL8cCbrmp0URjVS79dzQodzLMkyGza22ob2G9ZMGXo"
+		c := &ByteBasedVerifierCredentials{
+			Password:   []byte("pass2"),
+			EncodedKey: []byte(data),
+		}
 		a := NewArgon2idHasher()
-		_, _, err := a.Verify([]byte("pass2"), []byte(data))
+		_, _, err := a.Verify(c)
 		if err != ErrAlgorithmMismatch {
 			t.Errorf("Error should be ErrAlgorithmMismatch but got %v", err)
 		}
@@ -84,8 +109,12 @@ func TestArgon2idHasher_Verify(t *testing.T) {
 
 	{
 		data := "argon2id$v=smile$m=65536,t=2,p=4$MTIzNDU2Nzg5$XSL8cCbrmp0URjVS79dzQodzLMkyGza22ob2G9ZMGXo"
+		c := &ByteBasedVerifierCredentials{
+			Password:   []byte("pass2"),
+			EncodedKey: []byte(data),
+		}
 		a := NewArgon2idHasher()
-		_, _, err := a.Verify([]byte("pass2"), []byte(data))
+		_, _, err := a.Verify(c)
 		if err != ErrHashComponentUnreadable {
 			t.Errorf("Error should be ErrHashComponentUnreadable but got %v", err)
 		}
@@ -93,8 +122,12 @@ func TestArgon2idHasher_Verify(t *testing.T) {
 
 	{
 		data := "argon2id$v=20$m=65536,t=2,p=4$MTIzNDU2Nzg5$XSL8cCbrmp0URjVS79dzQodzLMkyGza22ob2G9ZMGXo"
+		c := &ByteBasedVerifierCredentials{
+			Password:   []byte("pass2"),
+			EncodedKey: []byte(data),
+		}
 		a := NewArgon2idHasher()
-		_, _, err := a.Verify([]byte("pass2"), []byte(data))
+		_, _, err := a.Verify(c)
 		if err != ErrIncompatibleVersion {
 			t.Errorf("Error should be ErrIncompatibleVersion but got %v", err)
 		}
@@ -102,8 +135,12 @@ func TestArgon2idHasher_Verify(t *testing.T) {
 
 	{
 		data := "argon2id$v=19$m=smile,t=2,p=4$MTIzNDU2Nzg5$XSL8cCbrmp0URjVS79dzQodzLMkyGza22ob2G9ZMGXo"
+		c := &ByteBasedVerifierCredentials{
+			Password:   []byte("pass2"),
+			EncodedKey: []byte(data),
+		}
 		a := NewArgon2idHasher()
-		_, _, err := a.Verify([]byte("pass2"), []byte(data))
+		_, _, err := a.Verify(c)
 		if err != ErrHashComponentUnreadable {
 			t.Errorf("Error should be ErrHashComponentUnreadable but got %v", err)
 		}
@@ -111,8 +148,13 @@ func TestArgon2idHasher_Verify(t *testing.T) {
 
 	{
 		data := "argon2id$v=19$m=65536,t=2,p=4$2$XSL8cCbrmp0URjVS79dzQodzLMkyGza22ob2G9ZMGXo"
+		c := &ByteBasedVerifierCredentials{
+			Password:   []byte("pass2"),
+			EncodedKey: []byte(data),
+		}
+
 		a := NewArgon2idHasher()
-		_, _, err := a.Verify([]byte("pass2"), []byte(data))
+		_, _, err := a.Verify(c)
 		if err != ErrHashComponentUnreadable {
 			t.Errorf("Error should be ErrHashComponentUnreadable but got %v", err)
 		}
@@ -120,8 +162,12 @@ func TestArgon2idHasher_Verify(t *testing.T) {
 
 	{
 		data := "argon2id$v=19$m=65536,t=2,p=4$MTIzNDU2Nzg5$1"
+		c := &ByteBasedVerifierCredentials{
+			Password:   []byte("pass2"),
+			EncodedKey: []byte(data),
+		}
 		a := NewArgon2idHasher()
-		_, _, err := a.Verify([]byte("pass2"), []byte(data))
+		_, _, err := a.Verify(c)
 		if err != ErrHashComponentUnreadable {
 			t.Errorf("Error should be ErrHashComponentUnreadable but got %v", err)
 		}

@@ -7,12 +7,20 @@ import (
 
 func ExampleNewArgon2idHasher() {
 	a := pasap.NewArgon2idHasher()
-	secretKey, encodedKey := a.Encode([]byte("pass"), []byte("123456789"))
+	ec := &pasap.ByteBasedEncoderCredentials{
+		Salt:     []byte("123456789"),
+		Password: []byte("pass"),
+	}
+	secretKey, encodedKey, err := a.Encode(ec)
 
 	fmt.Printf("Secret key: %v\n", secretKey)
 	fmt.Printf("Encoded key: %v\n", encodedKey)
 
-	_, ok, err := a.Verify([]byte("pass"), encodedKey)
+	vc := &pasap.ByteBasedVerifierCredentials{
+		Password:   []byte("pass"),
+		EncodedKey: encodedKey,
+	}
+	_, ok, err := a.Verify(vc)
 	if err != nil {
 		panic(err)
 	}

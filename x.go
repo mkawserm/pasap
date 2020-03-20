@@ -14,4 +14,8 @@ var (
 
 	// ErrIncompatibleVersion occurs when version in to compatible
 	ErrIncompatibleVersion = errors.New("pasap: incompatible version")
+
+	// ErrInvalidData occurs when given data is not valid, normally for
+	// salt, password and encoded key
+	ErrInvalidData = errors.New("pasap: invalid data")
 )
