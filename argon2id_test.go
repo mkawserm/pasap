@@ -46,6 +46,12 @@ func TestNewArgon2idHasher(t *testing.T) {
 			Salt:     []byte("123456789"),
 			Password: []byte("pass"),
 		})
+
+		if err != nil {
+			t.Errorf("error: %v", err)
+			return
+		}
+
 		if len(secretKey) != 32 {
 			t.Errorf("expected secret key length 32, but got %d", len(secretKey))
 			return
