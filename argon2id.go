@@ -26,16 +26,17 @@ func (a *Argon2idHasher) Name() string {
 	return "argon2id"
 }
 
+// Version returns Algorithm version
 func (a *Argon2idHasher) Version() int {
 	return argon2.Version
 }
 
+// Parameters returns current active parameters
 func (a *Argon2idHasher) Parameters() string {
 	s := fmt.Sprintf("m=%d,t=%d,p=%d",
 		a.Memory,
 		a.Time,
-		a.Threads,
-	)
+		a.Threads)
 	return s
 }
 

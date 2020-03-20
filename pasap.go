@@ -41,6 +41,7 @@ type AlgorithmName interface {
 	Name() string
 }
 
+// AlgorithmVersion basic interface
 type AlgorithmVersion interface {
 	Version() int
 }
