@@ -52,17 +52,17 @@ func (a *Argon2idHasher) Encode(password, salt []byte) (secretKey, encodedKey []
 }
 
 // Verify the password against the encoded key
-func (a *Argon2idHasher) Verify(password, encodedKey []byte) (bool, error) {
+func (a *Argon2idHasher) Verify(password, encodedKey []byte) ([]byte, bool, error) {
 	s := strings.Split(string(encodedKey), "$")
 
 	if len(s) != 5 {
-		return false, ErrHashComponentMismatch
+		return nil, false, ErrHashComponentMismatch
 	}
 
 	algorithm, version, params, salt, hash := s[0], s[1], s[2], s[3], s[4]
 
 	if algorithm != a.Name() {
-		return false, ErrAlgorithmMismatch
+		return nil, false, ErrAlgorithmMismatch
 	}
 
 	var v int
@@ -71,11 +71,11 @@ func (a *Argon2idHasher) Verify(password, encodedKey []byte) (bool, error) {
 	_, err = fmt.Sscanf(version, "v=%d", &v)
 
 	if err != nil {
-		return false, ErrHashComponentUnreadable
+		return nil, false, ErrHashComponentUnreadable
 	}
 
 	if v != argon2.Version {
-		return false, ErrIncompatibleVersion
+		return nil, false, ErrIncompatibleVersion
 	}
 
 	var time, memory uint32
@@ -84,25 +84,25 @@ func (a *Argon2idHasher) Verify(password, encodedKey []byte) (bool, error) {
 	_, err = fmt.Sscanf(string(params), "m=%d,t=%d,p=%d", &memory, &time, &threads)
 
 	if err != nil {
-		return false, ErrHashComponentUnreadable
+		return nil, false, ErrHashComponentUnreadable
 	}
 
 	bSalt, err := base64.RawStdEncoding.DecodeString(salt)
 
 	if err != nil {
-		return false, ErrHashComponentUnreadable
+		return nil, false, ErrHashComponentUnreadable
 	}
 
 	bHash, err := base64.RawStdEncoding.DecodeString(hash)
 
 	if err != nil {
-		return false, ErrHashComponentUnreadable
+		return nil, false, ErrHashComponentUnreadable
 	}
 
 	secretKey := argon2.IDKey(password, bSalt, time, memory, threads, uint32(len(bHash)))
 	newHash := argon2.IDKey(secretKey, bSalt, time, memory, threads, uint32(len(bHash)))
 
-	return subtle.ConstantTimeCompare(bHash, newHash) == 1, nil
+	return secretKey, subtle.ConstantTimeCompare(bHash, newHash) == 1, nil
 }
 
 // NewArgon2idHasher returns a new Argon2idHasher instance

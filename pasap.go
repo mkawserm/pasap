@@ -12,7 +12,7 @@ type PasswordEncoder interface {
 
 // PasswordVerifier basic interface
 type PasswordVerifier interface {
-	Verify(password, encodedKey []byte) (bool, error)
+	Verify(password, encodedKey []byte) ([]byte, bool, error)
 }
 
 // PasswordHasher basic interface

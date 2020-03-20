@@ -12,7 +12,7 @@ func ExampleNewArgon2idHasher() {
 	fmt.Printf("Secret key: %v\n", secretKey)
 	fmt.Printf("Encoded key: %v\n", encodedKey)
 
-	ok, err := a.Verify([]byte("pass"), encodedKey)
+	_, ok, err := a.Verify([]byte("pass"), encodedKey)
 	if err != nil {
 		panic(err)
 	}
