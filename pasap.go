@@ -14,8 +14,8 @@ type EncoderCredentialsWriter interface {
 
 // EncoderCredentialsRW interface combines together EncoderCredentialsReader and EncoderCredentialsWriter
 type EncoderCredentialsRW interface {
-	SetSalt(salt []byte) error
-	SetPassword(password []byte) error
+	EncoderCredentialsReader
+	EncoderCredentialsWriter
 }
 
 // VerifierCredentialsReader interface defines ReadPassword and ReadEncodedKey methods
